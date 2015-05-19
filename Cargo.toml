@@ -1,0 +1,7 @@
+[package]
+name = "rust-vocoder"
+version = "0.1.0"
+authors = ["TurplePurtle <turplepurtle@gmail.com>"]
+
+[dependencies]
+portaudio = "*"
