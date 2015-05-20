@@ -7,32 +7,19 @@
 
 extern crate portaudio;
 
+mod oscillator;
+use oscillator::Oscillator;
+
 use portaudio::pa;
 use std::error::Error;
 
 const SAMPLE_RATE: f64 = 44_100.0;
 const FRAMES: u32 = 256;
 
-struct Sawtooth {
-    phase: f32,
-}
-
-impl Sawtooth {
-    fn new() -> Sawtooth {
-        Sawtooth {
-            phase: 0.0,
-        }
-    }
-
-    fn sample(&mut self, delta: f32) -> f32 {
-        self.phase = (self.phase + delta) % 2.0f32;
-        self.phase - 1.0f32
-    }
-}
 
 fn main() {
 
-    let mut sawtooth = Sawtooth::new();
+    let mut oscillator = Oscillator::new(SAMPLE_RATE as f32);
 
     println!("PortAudio version : {}", pa::get_version());
     println!("PortAudio version text : {}", pa::get_version_text());
@@ -67,7 +54,7 @@ fn main() {
     // Construct the input stream parameters.
     let input_stream_params = pa::StreamParameters {
         device : def_input,
-        channel_count : 2,
+        channel_count : 1,
         sample_format : pa::SampleFormat::Float32,
         suggested_latency : input_info.default_low_input_latency
     };
@@ -83,7 +70,7 @@ fn main() {
     // Construct the output stream parameters.
     let output_stream_params = pa::StreamParameters {
         device : def_output,
-        channel_count : 2,
+        channel_count : 1,
         sample_format : pa::SampleFormat::Float32,
         suggested_latency : output_info.default_low_output_latency
     };
@@ -96,44 +83,23 @@ fn main() {
     // Construct a stream with input and output sample types of f32.
     let mut stream : pa::Stream<f32, f32> = pa::Stream::new();
 
-    // Once the countdown reaches 0 we'll close the stream.
-    let mut count_down = 3.0;
-
-    // Keep track of the last `current_time` so we can calculate the delta time.
-    let mut maybe_last_time = None;
-
-    // We'll use this channel to send the count_down to the main thread for fun.
-    let (sender, receiver) = ::std::sync::mpsc::channel();
-
-
     // Construct a custom callback function - in this case we're using a FnMut closure.
     let callback = Box::new(move |
         input: &[f32],
         output: &mut[f32],
         frames: u32,
-        time_info: &pa::StreamCallbackTimeInfo,
+        _time_info: &pa::StreamCallbackTimeInfo,
         _flags: pa::StreamCallbackFlags,
     | -> pa::StreamCallbackResult {
 
-        let current_time = time_info.current_time;
-        let prev_time = maybe_last_time.unwrap_or(current_time);
-        let dt = current_time - prev_time;
-        count_down -= dt;
-        maybe_last_time = Some(current_time);
-
         assert!(frames == FRAMES);
-        sender.send(count_down).ok();
 
         // Pass the input straight to the output - BEWARE OF FEEDBACK!
-        for (output_sample, input_sample) in output.iter_mut().zip(input.iter()) {
-            *output_sample = sawtooth.sample(0.001);
+        for (output_sample, _input_sample) in output.iter_mut().zip(input.iter()) {
+            *output_sample = oscillator.sawtooth(440.0f32);
         }
 
-        if count_down > 0.0 {
-            pa::StreamCallbackResult::Continue
-        } else {
-            pa::StreamCallbackResult::Complete
-        }
+        pa::StreamCallbackResult::Continue
     });
 
 
@@ -155,14 +121,7 @@ fn main() {
 
 
     // Loop while the non-blocking stream is active.
-    while let Ok(true) = stream.is_active() {
-
-        // Do some stuff!
-        while let Ok(count_down) = receiver.try_recv() {
-            // println!("count_down: {:?}", count_down);
-        }
-
-    }
+    while let Ok(true) = stream.is_active() {}
 
 
     match stream.close() {
