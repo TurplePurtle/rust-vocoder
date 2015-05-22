@@ -1,7 +1,7 @@
 extern crate portaudio;
 
 mod oscillator;
-use oscillator::Oscillator;
+mod vocoder;
 
 use portaudio::pa;
 use std::error::Error;
@@ -12,7 +12,12 @@ const FRAMES: u32 = 256;
 
 fn main() {
 
-    let mut oscillator = Oscillator::new(SAMPLE_RATE as f32);
+    let mut oscillator = oscillator::Oscillator::new(SAMPLE_RATE as f32);
+    let mut osc_buffer = [0f32; FRAMES as usize];
+    let mut vocoder = vocoder::Vocoder::new();
+
+    oscillator.set_waveform(oscillator::Waveform::Sawtooth);
+    oscillator.set_frequency(100f32);
 
     println!("PortAudio version : {}", pa::get_version());
     println!("PortAudio version text : {}", pa::get_version_text());
@@ -87,10 +92,8 @@ fn main() {
 
         assert!(frames == FRAMES);
 
-        // Pass the input straight to the output - BEWARE OF FEEDBACK!
-        for (output_sample, _input_sample) in output.iter_mut().zip(input.iter()) {
-            *output_sample = oscillator.sawtooth(440.0f32);
-        }
+        oscillator.fill(&mut osc_buffer);
+        vocoder.generate(output, input, &mut osc_buffer);
 
         pa::StreamCallbackResult::Continue
     });
