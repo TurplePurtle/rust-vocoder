@@ -1,6 +1,5 @@
 
-const TAU: f32 = 6.28318530717958647692528676655900576_f32;
-const PI: f32 = TAU / 2.0f32;
+use util::{TAU, PI};
 
 pub enum Waveform {
     Sine,

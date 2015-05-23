@@ -1,6 +1,8 @@
 extern crate portaudio;
 
+mod util;
 mod oscillator;
+mod biquad_filter;
 mod vocoder;
 
 use portaudio::pa;
@@ -14,7 +16,7 @@ fn main() {
 
     let mut oscillator = oscillator::Oscillator::new(SAMPLE_RATE as f32);
     let mut osc_buffer = [0f32; FRAMES as usize];
-    let mut vocoder = vocoder::Vocoder::new();
+    let mut vocoder = vocoder::Vocoder::new(SAMPLE_RATE as f32);
 
     oscillator.set_waveform(oscillator::Waveform::Sawtooth);
     oscillator.set_frequency(100f32);
