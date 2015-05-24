@@ -1,10 +1,8 @@
 extern crate portaudio;
+extern crate vocoder;
 
-mod util;
-mod oscillator;
-mod biquad_filter;
-mod vocoder;
-
+use vocoder::Vocoder;
+use vocoder::oscillator::{Oscillator, Waveform};
 use portaudio::pa;
 use std::error::Error;
 
@@ -14,11 +12,11 @@ const FRAMES: u32 = 256;
 
 fn main() {
 
-    let mut oscillator = oscillator::Oscillator::new(SAMPLE_RATE as f32);
+    let mut oscillator = Oscillator::new(SAMPLE_RATE as f32);
     let mut osc_buffer = [0f32; FRAMES as usize];
-    let mut vocoder = vocoder::Vocoder::new(SAMPLE_RATE as f32);
+    let mut vocoder = Vocoder::new(SAMPLE_RATE as f32);
 
-    oscillator.set_waveform(oscillator::Waveform::Sawtooth);
+    oscillator.set_waveform(Waveform::Sawtooth);
     oscillator.set_frequency(100f32);
 
     println!("PortAudio version : {}", pa::get_version());

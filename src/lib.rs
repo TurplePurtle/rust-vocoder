@@ -1,4 +1,8 @@
 
+mod util;
+pub mod oscillator;
+mod biquad_filter;
+
 use biquad_filter::BiquadFilter;
 
 // number of bands for the vocoder
