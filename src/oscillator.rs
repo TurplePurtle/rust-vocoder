@@ -13,7 +13,7 @@ pub struct Oscillator {
     sample_rate: f32,
     phase: f32,
     waveform: Waveform,
-    frequency: f32,
+    norm_freq: f32,
 }
 
 impl Oscillator {
@@ -22,12 +22,12 @@ impl Oscillator {
             phase: 0.0,
             sample_rate: sample_rate,
             waveform: Waveform::Sine,
-            frequency: 440f32,
+            norm_freq: TAU * 440f32 / sample_rate,
         }
     }
 
     pub fn tick(&mut self) {
-        self.phase = (self.phase + TAU * self.frequency / self.sample_rate) % TAU;
+        self.phase = (self.phase + self.norm_freq) % TAU;
     }
 
     pub fn sample(&self) -> f32 {
@@ -51,7 +51,7 @@ impl Oscillator {
     }
 
     pub fn set_frequency(&mut self, freq: f32) {
-        self.frequency = freq;
+        self.norm_freq = TAU * freq / self.sample_rate;
     }
 }
 
