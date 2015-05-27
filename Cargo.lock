@@ -3,6 +3,7 @@ name = "vocoder"
 version = "0.1.0"
 dependencies = [
  "portaudio 0.4.9 (registry+https://github.com/rust-lang/crates.io-index)",
+ "rand 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]

@@ -1,9 +1,11 @@
+extern crate rand;
 
 use util::{TAU, PI};
 
 pub enum Waveform {
     Sine,
     Sawtooth,
+    Noise,
 }
 
 pub struct Oscillator {
@@ -31,6 +33,7 @@ impl Oscillator {
         match self.waveform {
             Waveform::Sine => self.phase.sin(),
             Waveform::Sawtooth => self.phase / PI - 1.0f32,
+            Waveform::Noise => 2f32 * rand::random::<f32>() - 1f32,
         }
     }
 
